@@ -1,165 +1,53 @@
--- Load Rayfield UI
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+-- Load Rayfield local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
--- Create Main Window
-local Window = Rayfield:CreateWindow({
-   Name = "Kiyo Hub",
-   Icon = 0,
-   LoadingTitle = "Kiyo Hub",
-   LoadingSubtitle = "Grow a Garden Edition",
-   Theme = "Amethyst",
-   ToggleUIKeybind = "K",
-   ConfigurationSaving = {
-      Enabled = true,
-      FolderName = "KiyoHubConfigs",
-      FileName = "KiyoHubUI"
-   }
+-- Create UI Window local Window = Rayfield:CreateWindow({ Name = "Kiyo Hub", Icon = 0, LoadingTitle = "Kiyo Hub", LoadingSubtitle = "Grow a Garden Edition", Theme = "Amethyst", ToggleUIKeybind = "K", ConfigurationSaving = { Enabled = true, FolderName = "KiyoHubConfigs", FileName = "KiyoHubUI" } })
+
+-- Create Main Tab local MainTab = Window:CreateTab("Grow a Garden", "flower")
+
+-- Add Buttons for Scripts MainTab:CreateButton({Name = "NatHub", Callback = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/ArdyBotzz/NatHub/refs/heads/master/NatHub.lua"))() end}) MainTab:CreateButton({Name = "Speed Hub", Callback = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/AhmadV99/Speed-Hub-X/main/Speed%20Hub%20X.lua", true))() end}) MainTab:CreateButton({Name = "Lunor Hub", Callback = function() loadstring(game:HttpGet("https://lunor.dev/loader"))() end}) MainTab:CreateButton({Name = "No Lag Hub", Callback = function() loadstring(game:HttpGet("https://rawscripts.net/raw/Grow-a-Garden-NoLag-Hub-no-key-38699"))() end}) MainTab:CreateButton({Name = "Thundez Hub", Callback = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/x2zy/thundez-hub/main/main.lua"))() end}) MainTab:CreateButton({Name = "Than Hub", Callback = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/thanHub/ThanHub/main/Main.lua"))() end})
+
+-- Server Hop Tab local ServerHopTab = Window:CreateTab("Auto Server Hop", "repeat")
+
+local selectedDelay = 30 ServerHopTab:CreateDropdown({ Name = "Hop Delay", Options = {"30 seconds", "1 minute"}, CurrentOption = {"30 seconds"}, Flag = "HopDelay", Callback = function(Option) selectedDelay = (Option[1] == "1 minute") and 60 or 30 end })
+
+local avoidSamePlayers = true ServerHopTab:CreateToggle({ Name = "Avoid Same Players", CurrentValue = true, Callback = function(Value) avoidSamePlayers = Value end })
+
+local autoHop = false function hopToNewServer() local HttpService = game:GetService("HttpService") local TPS = game:GetService("TeleportService") local Players = game:GetService("Players")
+
+local success, servers = pcall(function() return HttpService:JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public?sortOrder=Asc&limit=100")) end)
+
+if success and servers and servers.data then local currentPlayers = {} for _, p in ipairs(Players:GetPlayers()) do currentPlayers[p.UserId] = true end
+
+table.sort(servers.data, function(a, b)
+     return a.playing < b.playing
+  end)
+
+  for _, server in pairs(servers.data) do
+     if server.playing < server.maxPlayers and server.id ~= game.JobId then
+        if avoidSamePlayers and server.players then
+           local skip = false
+           for _, plr in ipairs(server.players) do
+              if currentPlayers[plr.id] then
+                 skip = true
+                 break
+              end
+           end
+           if skip then continue end
+        end
+        writefile("KiyoHubAutoExec.lua", [[
+           loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+           loadstring(game:HttpGet('https://raw.githubusercontent.com/AhmadV99/Speed-Hub-X/main/Speed%20Hub%20X.lua', true))()
+        ]])
+        TPS:TeleportToPlaceInstance(game.PlaceId, server.id, Players.LocalPlayer)
+        break
+     end
+  end
+
+end end
+
+ServerHopTab:CreateToggle({ Name = "Enable Auto Server Hop", CurrentValue = false, Flag = "AutoHop", Callback = function(Value) autoHop = Value if autoHop then task.spawn(function() while autoHop do task.wait(selectedDelay) if not autoHop then break end hopToNewServer() end end) end end })
+
+ServerHopTab:CreateButton({ Name = "Manual Server Hop", Callback = function() hopToNewServer() 
+end 
 })
 
--- Create Main Tab
-local MainTab = Window:CreateTab("Grow a Garden", "flower")
-
--- Button list for other scripts
-MainTab:CreateButton({
-   Name = "NatHub",
-   Callback = function()
-      loadstring(game:HttpGet("https://raw.githubusercontent.com/ArdyBotzz/NatHub/refs/heads/master/NatHub.lua"))()
-   end,
-})
-
-MainTab:CreateButton({
-   Name = "Speed Hub",
-   Callback = function()
-      loadstring(game:HttpGet("https://raw.githubusercontent.com/AhmadV99/Speed-Hub-X/main/Speed%20Hub%20X.lua", true))()
-   end,
-})
-
-MainTab:CreateButton({
-   Name = "Lunor Hub",
-   Callback = function()
-      loadstring(game:HttpGet("https://lunor.dev/loader"))()
-   end,
-})
-
-MainTab:CreateButton({
-   Name = "No Lag Hub",
-   Callback = function()
-      loadstring(game:HttpGet("https://rawscripts.net/raw/Grow-a-Garden-NoLag-Hub-no-key-38699"))()
-   end,
-})
-
-MainTab:CreateButton({
-   Name = "Thundez Hub",
-   Callback = function()
-      loadstring(game:HttpGet("https://raw.githubusercontent.com/x2zy/thundez-hub/main/main.lua"))()
-   end,
-})
-
-MainTab:CreateButton({
-   Name = "Than Hub",
-   Callback = function()
-      loadstring(game:HttpGet("https://raw.githubusercontent.com/thanHub/ThanHub/main/Main.lua"))()
-   end,
-})
-
--- Auto Server Hop Tab
-local ServerHopTab = Window:CreateTab("Auto Server Hop", "repeat")
-local selectedDelay = 30
-local avoidSamePlayers = true
-
-ServerHopTab:CreateDropdown({
-   Name = "Hop Delay",
-   Options = {"30 seconds", "1 minute"},
-   CurrentOption = {"30 seconds"},
-   Flag = "HopDelay",
-   Callback = function(Option)
-      selectedDelay = (Option[1] == "30 seconds") and 30 or 60
-   end
-})
-
-ServerHopTab:CreateToggle({
-   Name = "Avoid Same Players",
-   CurrentValue = true,
-   Flag = "AvoidPlayers",
-   Callback = function(Value)
-      avoidSamePlayers = Value
-   end
-})
-
--- Manual Server Hop Button
-ServerHopTab:CreateButton({
-   Name = "Manual Server Hop",
-   Callback = function()
-      queueAutoExecScripts()
-      hopToNewServer()
-   end
-})
-
--- Queue auto-exec scripts
-function queueAutoExecScripts()
-   local scriptData = [[
--- Kiyo Hub
-loadstring(game:HttpGet('https://raw.githubusercontent.com/Melbinablond/Kiyo-Scripts/refs/heads/main/Kiyo%20scripts'))()
-
--- Speed Hub
-loadstring(game:HttpGet('https://raw.githubusercontent.com/AhmadV99/Speed-Hub-X/main/Speed%20Hub%20X.lua', true))()
-]]
-   writefile("KiyoHubAutoExec.lua", scriptData)
-end
-
--- Server hop function
-function hopToNewServer()
-   local HttpService = game:GetService("HttpService")
-   local TPS = game:GetService("TeleportService")
-   local Players = game:GetService("Players")
-
-   local success, servers = pcall(function()
-      return HttpService:JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public?sortOrder=Asc&limit=100"))
-   end)
-
-   if success and servers then
-      local currentPlayers = {}
-      for _, p in ipairs(Players:GetPlayers()) do
-         currentPlayers[p.UserId] = true
-      end
-
-      for _, server in pairs(servers.data) do
-         if server.playing < server.maxPlayers and server.id ~= game.JobId then
-            if avoidSamePlayers and server.playing > 0 and server.players then
-               local skip = false
-               for _, plr in ipairs(server.players) do
-                  if currentPlayers[plr.id] then
-                     skip = true
-                     break
-                  end
-               end
-               if skip then continue end
-            end
-
-            TPS:TeleportToPlaceInstance(game.PlaceId, server.id, Players.LocalPlayer)
-            break
-         end
-      end
-   end
-end
-
--- Auto Server Hop Toggle
-local autoHop = false
-ServerHopTab:CreateToggle({
-   Name = "Enable Auto Server Hop",
-   CurrentValue = false,
-   Flag = "AutoHop",
-   Callback = function(Value)
-      autoHop = Value
-      if autoHop then
-         task.spawn(function()
-            while autoHop do
-               task.wait(selectedDelay)
-               if not autoHop then break end
-               queueAutoExecScripts()
-               hopToNewServer()
-            end
-         end)
-      end
-   end
-})
