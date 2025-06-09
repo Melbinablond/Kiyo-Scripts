@@ -206,7 +206,7 @@ local function serverHop()
             ]])
         elseif queuedScript == "KiyoHub" then
             writefile("KiyoHubAutoExec.lua", [[
-                loadstring(game:HttpGet("https://raw.githubusercontent.com/AhmadV99/Speed-Hub-X/main/Speed%20Hub%20X.lua"))()
+                loadstring(game:HttpGet("YOUR_UI_SCRIPT_URL_HERE"))()
             ]])
         else
             -- Clear autoexec file
