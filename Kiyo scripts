@@ -47,7 +47,5 @@ end end
 
 ServerHopTab:CreateToggle({ Name = "Enable Auto Server Hop", CurrentValue = false, Flag = "AutoHop", Callback = function(Value) autoHop = Value if autoHop then task.spawn(function() while autoHop do task.wait(selectedDelay) if not autoHop then break end hopToNewServer() end end) end end })
 
-ServerHopTab:CreateButton({ Name = "Manual Server Hop", Callback = function() hopToNewServer() 
-end 
-})
+ServerHopTab:CreateButton({ Name = "Manual Server Hop", Callback = function() hopToNewServer() end })
 
